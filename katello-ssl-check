@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+require 'openssl'
+
+# define CA paths
+katello_default_ca = '/etc/pki/katello/certs/katello-default-ca.crt'
+katello_server_ca = '/etc/pki/katello/certs/katello-default-ca.crt'
+puppet_ca =         '/var/lib/puppet/ssl/ca.pem'
+
+# set FQDN to variable
+
+fqdn = `hostname -f`.chomp
+
+# define SSL cert paths
+
+certs = [
+    '/etc/pki/katello/qpid_router_client.crt'
+    '/etc/pki/katello/qpid_router_server.crt'
+    '/etc/pki/katello/certs/java-client.crt'
+    '/etc/pki/katello/certs/katello-apache.crt'
+    '/etc/pki/katello/certs/pulp-client.crt'
+    'etc/pki/katello/qpid_client_striped.crt'
+    '/etc/foreman-proxy/ssl_cert.pem'
+]
+
+# check to see if custom certs are used
+
+hash1 = `md5sum /etc/pki/katello/certs/katello-default-ca.crt`.chomp
+hash2 = `md5sum /etc/pki/katello/certs/katello-default-ca.crt`.chomp
+
+if hash1 == hash2
+  puts "Using SSL certs from the installer, proceeding with check"
+  ssl_check
+else
+  puts "Using custom SSL certs, proceeding with check"
+  ssl_check_custom
+end
+
+# do the checks
+
+def ssl_cert_check
+  certs.each do [cert]
+  puts "Checking #{certs}"
+  status = `openssl verify -CAfile #{katello_default_ca} #{certs}`
+  puts `openssl verify -CAfile #{katello_default_ca} #{certs}`
+  if status != "ok"
+     puts "There is an issue with the SSL certs on this satellite"
+  else puts "SSL Certs look good"
+  end
+  end
+end

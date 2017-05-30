@@ -123,3 +123,4 @@ end
   if @options[:puppet]
      puppet_certs_check
   end
+end
